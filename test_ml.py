@@ -143,6 +143,14 @@ def sample_data():
     ]
     return data, cat_features
 
+class DummyModel:
+    """Mock classifier that returns predetermined predictions."""
+
+    def __init__(self, predictions):
+        self.predictions = np.array(predictions)
+
+    def predict(self, X):
+        return self.predictions
 
 def test_train_model(sample_data):
     """Tests that train_model returns a fitted RandomForestClassifier."""
@@ -176,7 +184,28 @@ def test_performance_on_categorical_slice(sample_data):
     X, y, encoder, lb = process_data(
         data, categorical_features=cat_features, label="salary", training=True
     )
-    model = train_model(X, y)
+    # In sample_data, there are 6 "Male" rows at original indices:
+    # Index 0: <=50K (0)
+    # Index 1: <=50K (0)
+    # Index 2: <=50K (0)
+    # Index 3: <=50K (0)
+    # Index 7: >50K  (1)
+    # Index 9: >50K  (1)
+    #
+    # Actual labels (y_true) for "Male" slice: [0, 0, 0, 0, 1, 1]
+    # Mock predictions (y_pred):              [1, 0, 0, 0, 1, 0]
+    #
+    # Confusion Matrix Breakdown:
+    # - True Positives (TP)  = 1 (slice index 4 / original index 7)
+    # - False Positives (FP) = 1 (slice index 0 / original index 0)
+    # - False Negatives (FN) = 1 (slice index 5 / original index 9)
+    # - True Negatives (TN)  = 3 (slice indices 1, 2, 3)
+    #
+    # Expected Precision = 1 / (1 + 1) = 0.5
+    # Expected Recall    = 1 / (1 + 1) = 0.5
+    # Expected F1        = 2 * (0.5 * 0.5) / (0.5 + 0.5) = 0.5
+    mock_model = DummyModel(predictions=[1, 0, 0, 0, 1, 0])
+
 
     precision, recall, fbeta = performance_on_categorical_slice(
         data=data,
@@ -186,12 +215,9 @@ def test_performance_on_categorical_slice(sample_data):
         label="salary",
         encoder=encoder,
         lb=lb,
-        model=model,
+        model=mock_model,
     )
 
-    assert isinstance(precision, float)
-    assert isinstance(recall, float)
-    assert isinstance(fbeta, float)
-    assert 0.0 <= precision <= 1.0
-    assert 0.0 <= recall <= 1.0
-    assert 0.0 <= fbeta <= 1.0
+    assert precision == pytest.approx(0.5)
+    assert recall == pytest.approx(0.5)
+    assert fbeta == pytest.approx(0.5)
