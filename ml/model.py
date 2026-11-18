@@ -21,13 +21,14 @@ def train_model(X_train, y_train):
     model
         Trained machine learning model.
     """
-    base_model = RandomForestClassifier(random_state=42, n_jobs=-1)
+    base_model = RandomForestClassifier(random_state=42, n_jobs=1)
 
     param_distributions = {
-        "n_estimators":,
+        "n_estimators":[100, 200, 300],
         "max_depth": [10, 15, 20, None],
-        "min_samples_split":,
-        "min_samples_leaf":,
+        "min_samples_split":[2, 5, 10, 20],
+        "min_samples_leaf":[1, 2, 4],
+        "max_features": ["sqrt", "log2"],
         "class_weight": [None, "balanced"],
     }
 
@@ -149,7 +150,7 @@ def performance_on_categorical_slice(
     fbeta : float
 
     """
-    sliced_df = data[data[column_nmae] == slice_value]
+    sliced_df = data[data[column_name] == slice_value]
 
     X_slice, y_slice, _, _ = process_data(
         sliced_df,
