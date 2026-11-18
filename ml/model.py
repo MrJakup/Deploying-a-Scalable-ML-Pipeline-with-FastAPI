@@ -21,7 +21,7 @@ def train_model(X_train, y_train):
     model
         Trained machine learning model.
     """
-   base_model = RandomForestClassifier(random_state=42, n_jobs=-1)
+    base_model = RandomForestClassifier(random_state=42, n_jobs=-1)
 
     param_distributions = {
         "n_estimators":,

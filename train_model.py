@@ -14,7 +14,7 @@ from ml.model import (
 )
 
 # Load census.csv data
-project_path = "https://github.com/MrJakup/Deploying-a-Scalable-ML-Pipeline-with-FastAPI/tree/main"
+project_path = "."
 data_path = os.path.join(project_path, "data", "census.csv")
 print(data_path)
 data = pd,read_csv(data_path)
@@ -72,15 +72,26 @@ preds = inference(model, X_test)
 p, r, fb = compute_model_metrics(y_test, preds)
 print(f"Precision: {p:.4f} | Recall: {r:.4f} | F1: {fb:.4f}")
 
-# TODO: compute the performance on model slices using the performance_on_categorical_slice function
+# Clear slice_output.txt before appending new results
+slice_output_path = os.path.join(project_path, "slice_output.txt")
+if os.path.exists(slice_output_path):
+    os.remove(slice_output_path)
+
+# Compute the performance on model slices using the performance_on_categorical_slice function
 # iterate through the categorical features
 for col in cat_features:
     # iterate through the unique values in one categorical feature
     for slicevalue in sorted(test[col].unique()):
         count = test[test[col] == slicevalue].shape[0]
         p, r, fb = performance_on_categorical_slice(
-            # your code here
-            # use test, col and slicevalue as part of the input
+            test,
+            col,
+            slicevalue,
+            cat_features,
+            "salary",
+            encoder,
+            lb,
+            model,
         )
         with open("slice_output.txt", "a") as f:
             print(f"{col}: {slicevalue}, Count: {count:,}", file=f)
